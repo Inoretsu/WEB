@@ -90,7 +90,7 @@ const data = [
 ];
 
 more.addEventListener('click', () => {
-    const  videosWrapper = document.querySelector('.videos__wrapper');
+    const videosWrapper = document.querySelector('.videos__wrapper');
     more.remove();
 
     for (let i = 0; i < data[0].length; ++i) {
@@ -98,20 +98,128 @@ more.addEventListener('click', () => {
         card.classList.add('videos__item', 'videos__item-active');
         card.setAttribute('data-url', data[3][i]);
         card.innerHTML = `
-            <img src="${data[0][i]}" alt="thumb">
-            <div class="videos__item-descr">
-                ${data[1][i]}
-            </div>
-            <div class="videos__item-views">
-                ${data[2][i]}
-            </div>
+        <img src="${data[0][i]}" alt="thumb">
+        <div class="videos__item-descr">
+            ${data[1][i]}
+        </div>
+        <div class="videos__item-views">
+            ${data[2][i]}
+        </div>
         `;
-        videosWrapper.appendChild(card);
 
-        //animation
+        videosWrapper.appendChild(card);
         setTimeout(() => {
             card.classList.remove('videos__item-active');
         }, 10);
+        bindNewModal(card);
+
+
+        if (night === true) {
+            document.querySelectorAll('.videos__item-descr').forEach(item => {
+                item.style.color = '#fff';
+            });
+            document.querySelectorAll('.videos__item-views').forEach(item => {
+                item.style.color = '#fff';
+            });
+            document.querySelector('.header__item-descr').style.color = '#fff';
+
+        } else {
+            document.querySelectorAll('.videos__item-descr').forEach(item => {
+                item.style.color = '#000';
+            });
+            document.querySelectorAll('.videos__item-views').forEach(item => {
+                item.style.color = '#000';
+            });
+            document.querySelector('.header__item-descr').style.color = '#000';
+        }
+
 
     }
+
+    sliceTitle('.videos__item-descr', 100);
 });
+
+//----------------обрезание заголовка до требуемой длины-----------------
+
+function sliceTitle(selector, count) {
+    document.querySelectorAll(selector).forEach(item => {
+        item.textContent.trim();
+
+        if (item.textContent.length < count) {
+            return;
+        } else {
+            const str = item.textContent.slice(0, count + 1) + "...";
+            item.textContent = str;
+        }
+    })
+}
+
+sliceTitle('.videos__item-descr', 100);
+
+//--------------модальное окно с видео внутри--------------
+
+function openModal() {
+    modal.style.display = 'block';
+}
+
+function closeModal() {
+    modal.style.display = 'none';
+    player.stopVideo();
+}
+
+function bindModal(cards){
+    cards.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const id = item.getAttribute('data-url');
+            loadVideo(id);
+            openModal();
+        });
+    });
+}
+bindModal(videos);
+
+function bindNewModal(card) {
+    card.addEventListener('click', (e) => {
+        e.preventDefault();
+        const id = card.getAttribute('data-url');
+        loadVideo(id);
+        openModal();
+    });
+}
+
+modal.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('modal__body')) {
+        closeModal();
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.keyCode === 27) {
+        closeModal();
+    }
+});
+
+//--------------YouTube Iframe API--------------
+
+function createVideo() {
+    var tag = document.createElement('script');
+
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    setTimeout(() => {
+        player = new YT.Player('frame', {
+            height: '100%',
+            width: '100%',
+            videoId: 'M7lc1UVf-VE'
+        });
+    }, 300);
+}
+
+createVideo();
+
+function loadVideo(id) {
+    player.loadVideoById({'videoId': `${id}`});
+}
